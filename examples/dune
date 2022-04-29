@@ -1,0 +1,3 @@
+(executables
+ (names benchmark_blst_fr)
+ (libraries bls12-381 carray))

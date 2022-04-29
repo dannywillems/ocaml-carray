@@ -1,4 +1,5 @@
 #include <caml/alloc.h>
+#include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -6,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define Internal_Carray_val(v) (*(void **)Data_custom_val(v))
 
@@ -23,6 +25,15 @@ void print_memory(void *ptr, int size) {
     printf("%02x", c[i++]);
   printf("\n");
 }
+
+static struct custom_operations carray_elmt_ops = {"carray_elmt",
+                                                   custom_finalize_default,
+                                                   custom_compare_default,
+                                                   custom_hash_default,
+                                                   custom_serialize_default,
+                                                   custom_deserialize_default,
+                                                   custom_compare_ext_default,
+                                                   custom_fixed_length_default};
 
 static struct custom_operations carray_ops = {"carray",
                                               finalize_carray,
@@ -143,4 +154,54 @@ CAMLprim value caml_copy_carray_stubs(value output, value input, value length,
     memcpy(output_c + i * size_c, input_c + i * size_c, size_c);
   }
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
+                                      value size) {
+  CAMLparam4(f, array, length, size);
+  CAMLlocal1(block);
+  int size_c = Int_val(size);
+  int length_c = Int_val(length);
+  void *array_c = Internal_Carray_with_ofs_val(array, size_c);
+  block = caml_alloc_custom(&carray_elmt_ops, size_c, 0, 1);
+
+  /* clock_t start_time = clock(); */
+  for (int i = 0; i < length_c; i++) {
+    memcpy(Data_custom_val(block), array_c + i * size_c, size_c);
+    caml_callback(f, block);
+  }
+  /* double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC; */
+  /* printf("Done in %f seconds\n", elapsed_time); */
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
+                                     value vlength, value vsize_a,
+                                     value vsize_b) {
+  CAMLparam5(voutput, vf, vinput, vlength, vsize_a);
+  CAMLxparam1(vsize_b);
+  CAMLlocal2(block, vres);
+  int size_a = Int_val(vsize_a);
+  int size_b = Int_val(vsize_b);
+  int length = Int_val(vlength);
+  void *input = Internal_Carray_with_ofs_val(vinput, size_a);
+  void *output = Internal_Carray_with_ofs_val(voutput, size_b);
+  block = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+
+  /* clock_t start_time = clock(); */
+  for (int i = 0; i < length; i++) {
+    memcpy(Data_custom_val(block), input + i * size_a, size_a);
+    vres = caml_callback(vf, block);
+    memcpy(output + i * size_b, Data_custom_val(vres), size_b);
+  }
+  /* double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC; */
+  /* printf("Done in %f seconds\n", elapsed_time); */
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_map_carray_stubs_bytecode(value args[], int argc) {
+  return caml_map_carray_stubs(args[0], args[1], args[2], args[3], args[4],
+                               args[5]);
 }

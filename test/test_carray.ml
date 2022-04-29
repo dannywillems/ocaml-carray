@@ -17,7 +17,15 @@ module Make (M : sig
 
   val fresh : unit -> t
 
+  val add_inplace : t -> t -> unit
+
   val eq : t -> t -> bool
+
+  val copy : t -> t
+
+  val zero : t
+
+  (* val to_bytes : t -> Bytes.t *)
 end) =
 struct
   module CArray = Carray.Make (M)
@@ -82,6 +90,16 @@ struct
     let exp_output = CArray.to_array input in
     assert (not (array_for_all2 M.eq exp_output output))
 
+  let test_iter_add_inplace () =
+    let n = 1 + Random.int 1_000 in
+    let array = Array.init n (fun _ -> M.fresh ()) in
+    let carray = CArray.init n (fun i -> array.(i)) in
+    let res = M.(copy zero) in
+    CArray.iter (fun x -> M.add_inplace res x) carray ;
+    let res' = M.(copy zero) in
+    Array.iter (fun x -> M.add_inplace res' x) array ;
+    assert (M.eq res res')
+
   let get_tests name =
     let open Alcotest in
     [ ( Printf.sprintf "Instantiate with %s" name,
@@ -90,6 +108,7 @@ struct
           test_case "sub" `Quick test_sub;
           test_case "set" `Quick test_set;
           test_case "copy" `Quick test_copy_returns_a_correct_fresh_copy;
+          test_case "iter" `Quick test_iter_add_inplace;
           test_case "length when make used" `Quick test_length_when_make_used;
           test_case "length when init used" `Quick test_length_when_init_used ]
       ) ]

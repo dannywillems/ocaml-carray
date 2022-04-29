@@ -19,12 +19,18 @@ module Stubs = struct
 
   external get : 'a -> 'a t -> int -> int -> unit = "caml_get_carray_stubs"
 
-  (** [sub output (input, ofs) offset len size_in_bytes]*)
+  (** [sub output (input, ofs) offset len size_in_bytes] *)
   external sub : 'a t -> 'a t -> int -> int -> int -> unit
     = "caml_sub_carray_stubs"
 
   (** [copy (output, ofs) (input, ofs) len size_in_bytes] *)
   external copy : 'a t -> 'a t -> int -> int -> unit = "caml_copy_carray_stubs"
+
+  external iter : ('a -> unit) -> 'a t -> int -> int -> unit
+    = "caml_iter_carray_stubs"
+
+  external map : ('a -> 'b) -> 'a t -> 'b t -> int -> int -> int -> unit
+    = "caml_map_carray_stubs_bytecode" "caml_map_carray_stubs"
 end
 
 module type S = sig
@@ -49,6 +55,11 @@ module type S = sig
   val sub_noalloc : 'a t -> int -> int -> 'a t
 
   val copy : 'a t -> 'a t
+
+  val iter : ('a -> unit) -> 'a t -> unit
+
+  (* FIXME: mmh, how can you allocate the type 'b t??? *)
+  (* val map : ('a -> 'b) -> 'a t -> 'b t *)
 end
 
 module Make (P : sig
@@ -110,4 +121,8 @@ end) : S = struct
     let new_carray = Stubs.allocate_carray n P.size_in_bytes in
     Stubs.copy (carray, ofs) (new_carray, 0) n P.size_in_bytes ;
     (new_carray, n, 0)
+
+  (* FIXME: It looks like it is slower than Array.iter when addition
+     Bls12_381.Fr points with add_inplace *)
+  let iter f (carray, n, ofs) = Stubs.iter f (carray, ofs) n P.size_in_bytes
 end
