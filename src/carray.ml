@@ -9,22 +9,28 @@ module Stubs = struct
 
   external of_array : 'a carray -> 'a array -> int -> int -> unit
     = "caml_carray_of_array_stubs"
+    [@@noalloc]
 
   external to_array : 'a array -> 'a t -> int -> int -> unit
     = "caml_array_of_carray_stubs"
+    [@@noalloc]
 
   external make : int -> int -> 'a -> 'a carray = "caml_make_carray_stubs"
 
   external set : 'a t -> 'a -> int -> int -> unit = "caml_set_carray_stubs"
+    [@@noalloc]
 
   external get : 'a -> 'a t -> int -> int -> unit = "caml_get_carray_stubs"
+    [@@noalloc]
 
   (** [sub output (input, ofs) offset len size_in_bytes] *)
   external sub : 'a t -> 'a t -> int -> int -> int -> unit
     = "caml_sub_carray_stubs"
+    [@@noalloc]
 
   (** [copy (output, ofs) (input, ofs) len size_in_bytes] *)
   external copy : 'a t -> 'a t -> int -> int -> unit = "caml_copy_carray_stubs"
+    [@@noalloc]
 
   external iter : ('a -> unit) -> 'a t -> int -> int -> unit
     = "caml_iter_carray_stubs"
