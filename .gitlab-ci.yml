@@ -44,7 +44,7 @@ lint-c:
     - apt-get update -y
     - apt-get install clang-format-11 git -y
     - clang-format-11 --version
-    - clang-format-11 src/**.{c,h} -i
+    - clang-format-11 src/*.c -i
     # Check if a file has been modified and uncommited
     - git diff --exit-code
   rules:
