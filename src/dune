@@ -1,0 +1,9 @@
+(library
+ (public_name carray)
+ (name carray)
+ (instrumentation
+  (backend bisect_ppx))
+ (library_flags :standard -linkall -ccopt -lpthread)
+ (foreign_stubs
+  (language c)
+  (names carray_stubs)))
