@@ -83,12 +83,10 @@ struct
       ) ]
 end
 
-let state = Random.State.make [| 42 |]
-
 module BLS_Fr_tests = Make (struct
   include Bls12_381.Fr
 
-  let fresh () = random ~state ()
+  let fresh () = random ()
 end)
 
 module BLS_G1_tests = Make (struct
@@ -98,7 +96,7 @@ module BLS_G1_tests = Make (struct
      serialized value! *)
   let size_in_bytes = 48 * 3
 
-  let fresh () = random ~state ()
+  let fresh () = random ()
 end)
 
 module BLS_G2_tests = Make (struct
@@ -108,7 +106,7 @@ module BLS_G2_tests = Make (struct
      serialized value! *)
   let size_in_bytes = 96 * 3
 
-  let fresh () = random ~state ()
+  let fresh () = random ()
 end)
 
 let () =
