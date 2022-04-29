@@ -9,7 +9,20 @@
 
 #define Carray_val(v) (*(void **)Data_custom_val(v))
 
+#define Carray_with_ofs_val(v, s)                                              \
+  ((*(void **)Data_custom_val(Field(v, 0))) + Int_val(Field(v, 1)) * s)
+
 static void finalize_carray(value v) { free(Carray_val(v)); }
+
+// Debugging routines
+void print_memory(void *ptr, int size) {
+  unsigned char *c = (unsigned char *)ptr;
+  int i = 0;
+
+  while (i != size)
+    printf("%02x", c[i++]);
+  printf("\n");
+}
 
 static struct custom_operations carray_ops = {"carray",
                                               finalize_carray,
@@ -38,7 +51,6 @@ CAMLprim value caml_allocate_carray_stubs(value n, value size) {
 CAMLprim value caml_carray_of_array_stubs(value buffer, value array, value n,
                                           value size) {
   CAMLparam4(buffer, array, n, size);
-  CAMLlocal1(block);
   int n_c = Int_val(n);
   int size_c = Int_val(size);
 
@@ -52,11 +64,10 @@ CAMLprim value caml_carray_of_array_stubs(value buffer, value array, value n,
 CAMLprim value caml_array_of_carray_stubs(value buffer, value array, value n,
                                           value size) {
   CAMLparam4(buffer, array, n, size);
-  CAMLlocal1(block);
   int n_c = Int_val(n);
   int size_c = Int_val(size);
 
-  void *array_c = Carray_val(array);
+  void *array_c = Carray_with_ofs_val(array, size_c);
   for (int i = 0; i < n_c; i++) {
     memcpy(Data_custom_val(Field(buffer, i)), array_c + i * size_c, size_c);
   }
@@ -85,7 +96,7 @@ CAMLprim value caml_set_carray_stubs(value buffer, value v, value i,
   CAMLparam4(buffer, v, i, size);
   int i_c = Int_val(i);
   int size_c = Int_val(size);
-  void *buffer_c = Carray_val(buffer);
+  void *buffer_c = Carray_with_ofs_val(buffer, size_c);
 
   memcpy(buffer_c + i_c * size_c, Data_custom_val(v), size_c);
 
@@ -97,7 +108,7 @@ CAMLprim value caml_get_carray_stubs(value buffer, value carray, value i,
   CAMLparam4(buffer, carray, i, size);
   int i_c = Int_val(i);
   int size_c = Int_val(size);
-  void *carray_c = Carray_val(carray);
+  void *carray_c = Carray_with_ofs_val(carray, size_c);
 
   memcpy(Data_custom_val(buffer), carray_c + i_c * size_c, size_c);
 
@@ -107,15 +118,29 @@ CAMLprim value caml_get_carray_stubs(value buffer, value carray, value i,
 CAMLprim value caml_sub_carray_stubs(value buffer, value input, value offset,
                                      value length, value size) {
   CAMLparam5(buffer, input, offset, length, size);
-  void *buffer_c = Carray_val(buffer);
-  void *input_c = Carray_val(input);
+  int size_c = Int_val(size);
+  void *buffer_c = Carray_with_ofs_val(buffer, size_c);
+  void *input_c = Carray_with_ofs_val(input, size_c);
   int offset_c = Int_val(offset);
   int length_c = Int_val(length);
-  int size_c = Int_val(size);
 
   for (int i = 0; i < length_c; i++) {
     memcpy(buffer_c + i * size_c, input_c + (offset_c + i) * size_c, size_c);
   }
 
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_copy_carray_stubs(value output, value input, value length,
+                                      value size) {
+  CAMLparam4(output, input, length, size);
+  int length_c = Int_val(length);
+  int size_c = Int_val(size);
+  void *output_c = Carray_with_ofs_val(output, size_c);
+  void *input_c = Carray_with_ofs_val(input, size_c);
+
+  for (int i = 0; i < length_c; i++) {
+    memcpy(output_c + i * size_c, input_c + i * size_c, size_c);
+  }
   CAMLreturn(Val_unit);
 }
