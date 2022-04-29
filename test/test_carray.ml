@@ -1,3 +1,15 @@
+let array_for_all2 p l1 l2 =
+  let n1 = Array.length l1 and n2 = Array.length l2 in
+  if n1 <> n2 then invalid_arg "Array.for_all2"
+  else
+    let rec loop i =
+      if i = n1 then true
+      else if p (Array.unsafe_get l1 i) (Array.unsafe_get l2 i) then
+        loop (succ i)
+      else false
+    in
+    loop 0
+
 module Make (M : sig
   type t
 
@@ -33,7 +45,7 @@ struct
     let exp_output = Array.init n (fun _ -> M.fresh ()) in
     let carray = CArray.init n (fun i -> exp_output.(i)) in
     let output = CArray.to_array carray in
-    assert (Array.for_all2 M.eq exp_output output)
+    assert (array_for_all2 M.eq exp_output output)
 
   let test_sub () =
     let n = 1 + Random.int 1_000 in
@@ -45,17 +57,17 @@ struct
     let sub_carray = CArray.sub carray offset len in
     let output = CArray.to_array sub_carray in
     assert (CArray.length sub_carray = len) ;
-    assert (Array.for_all2 M.eq exp_output output)
+    assert (array_for_all2 M.eq exp_output output)
 
   let test_set () =
     let n = 1_000 in
     let input' = Array.init n (fun _ -> M.fresh ()) in
     let input = CArray.init n (fun i -> input'.(i)) in
     let input_caml = CArray.to_array input in
-    assert (Array.for_all2 M.eq input_caml input') ;
+    assert (array_for_all2 M.eq input_caml input') ;
     CArray.set input (M.fresh ()) (Random.int n) ;
     let input_caml' = CArray.to_array input in
-    assert (not (Array.for_all2 M.eq input_caml input_caml'))
+    assert (not (array_for_all2 M.eq input_caml input_caml'))
 
   let test_copy_returns_a_correct_fresh_copy () =
     let n = 1 + Random.int 1_000 in
@@ -64,11 +76,11 @@ struct
     let output = CArray.to_array input' in
     let exp_output = CArray.to_array input in
     assert (CArray.length input' = CArray.length input) ;
-    assert (Array.for_all2 M.eq exp_output output) ;
+    assert (array_for_all2 M.eq exp_output output) ;
     CArray.set input (M.fresh ()) (Random.int n) ;
     let output = CArray.to_array input' in
     let exp_output = CArray.to_array input in
-    assert (not (Array.for_all2 M.eq exp_output output))
+    assert (not (array_for_all2 M.eq exp_output output))
 
   let get_tests name =
     let open Alcotest in
