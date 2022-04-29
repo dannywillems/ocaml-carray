@@ -3,6 +3,7 @@
 variables:
   IMAGE_WITH_CACHE: "ocaml/opam:debian-testing-opam"
   OCAML_COMPILER: "4.13.0"
+  OCAMLFORMAT_VERSION: "0.21.0"
   # A workaround against a bug in gitlab-runner's default
   # unzipping implementation, which partially breaks caching for the dune _build cache.
   # See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27496 for more details.
@@ -30,7 +31,7 @@ lint:
   stage: lint
   image: ocaml/opam:debian-ocaml-4.12
   before_script:
-    - opam install ocamlformat.0.20.1
+    - opam install ocamlformat.${OCAMLFORMAT_VERSION}
   script:
     - dune build @fmt
   rules:
