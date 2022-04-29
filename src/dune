@@ -7,3 +7,8 @@
  (foreign_stubs
   (language c)
   (names carray_stubs)))
+
+(install
+ (files ocaml_carray.h)
+ (section lib)
+ (package carray))

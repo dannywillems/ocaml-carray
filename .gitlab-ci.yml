@@ -4,6 +4,7 @@ variables:
   IMAGE_WITH_CACHE: "ocaml/opam:debian-testing-opam"
   OCAML_COMPILER: "4.13.0"
   OCAMLFORMAT_VERSION: "0.21.0"
+  LIBRARY_NAME: "carray"
   # A workaround against a bug in gitlab-runner's default
   # unzipping implementation, which partially breaks caching for the dune _build cache.
   # See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27496 for more details.
@@ -244,11 +245,13 @@ opam-install-and-remove:
     - opam repository set-url default https://opam.ocaml.org
     - opam update
   script:
-    - opam pin add carray.dev . --no-action
-    - opam depext carray.dev -i -y -v
-    - opam install carray.dev -y -v --deps-only
-    - opam install carray.dev -y -v
-    - opam remove -a -y carray.dev
+    - opam pin add ${LIBRARY_NAME}.dev . --no-action
+    - opam depext ${LIBRARY_NAME}.dev -i -y -v
+    - opam install ${LIBRARY_NAME}.dev -y -v --deps-only
+    - opam install ${LIBRARY_NAME}.dev -y -v
+    # Check headers are installed
+    - ls $OPAM_SWITCH_PREFIX/lib/${LIBRARY_NAME}/ocaml_carray.h
+    - opam remove -a -y ${LIBRARY_NAME}.dev
   rules:
     - when: always
 
@@ -267,11 +270,13 @@ opam-install-and-remove-local-switch:
     - opam repository set-url default https://opam.ocaml.org
     - opam update
   script:
-    - opam pin add carray.dev . --no-action
-    - opam depext carray.dev -i -y -v
-    - opam install carray.dev -y -v --deps-only
-    - opam install carray.dev -y -v
-    - opam remove -a -y carray.dev
+    - opam pin add ${LIBRARY_NAME}.dev . --no-action
+    - opam depext ${LIBRARY_NAME}.dev -i -y -v
+    - opam install ${LIBRARY_NAME}.dev -y -v --deps-only
+    - opam install ${LIBRARY_NAME}.dev -y -v
+    # Check headers are installed
+    - ls $OPAM_SWITCH_PREFIX/lib/${LIBRARY_NAME}/ocaml_carray.h
+    - opam remove -a -y ${LIBRARY_NAME}.dev
   rules:
     - when: always
 
