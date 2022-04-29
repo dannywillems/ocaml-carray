@@ -1,3 +1,6 @@
 (tests
- (names test_carray)
- (libraries carray bls12-381 alcotest hex))
+ (names test_carray test_carray_c_binding)
+ (libraries carray bls12-381 alcotest hex)
+ (foreign_stubs
+  (language c)
+  (names test_carray_c_binding_stubs)))
