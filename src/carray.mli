@@ -62,9 +62,70 @@ end) : sig
   (** [iter f a] iterates [f] over [a] *)
   val iter : ('a -> unit) -> 'a t -> unit
 
+  (** Same as {!Array.iter}, but the function is applied to the index of the
+      element as first argument, and the element itself as second argument
+
+      TODO: easy
+  *)
+  (* val iteri : (int -> 'a -> unit) -> 'a array -> unit *)
+
   (** [for_all f a] checks if all elements of the array satisfy the predicate [f] *)
   val for_all : ('a -> bool) -> 'a t -> bool
 
   (* FIXME: mmh, how can you allocate the type 'b t??? *)
   (* val map : ('a -> 'b) -> 'a t -> 'b t *)
+
+  (** [append v1 v2] returns a fresh array containing the concatenation of the
+      arrays [v1] and [v2].
+
+      Raises [Invalid_argument] if [length v1 + length v2 >
+      Sys.max_array_length]
+
+      TODO: easy
+  *)
+  (* val append : 'a array -> 'a array -> 'a array *)
+
+  (** Same as Array.append, but concatenates a list of arrays
+
+      TODO: easy
+  *)
+  (* val concat : 'a array list -> 'a array *)
+
+  (** [fill a pos len x] modifies the array [a] in place, storing [x] in
+      elements number [pos] to [pos + len - 1].
+
+      Raises [Invalid_argument] if [pos] and [len] do not designate a valid
+      subarray of [a].
+
+      TODO: easy
+  *)
+  (* val fill : 'a array -> int -> int -> 'a -> unit *)
+
+  (** [blit src src_pos dst dst_pos len] copies [len] elements from array [src],
+      starting at element number [src_pos], to array [dst], starting at element
+      number [dst_pos]. It works correctly even if [src] and [dst] are the same array,
+      and the source and destination chunks overlap.
+
+      Raises [Invalid_argument] if [src_pos] and [len] do not designate a valid
+      subarray of [src], or if [dst_pos] and [len] do not designate a valid subarray of
+      [dst].
+
+      TODO: easy
+  *)
+  (* val blit : 'a array -> int -> 'a array -> int -> int -> unit *)
+
+  (** [exists f [|a1; ...; an|]] checks if at least one element of the array
+      satisfies the predicate [f]. That is, it returns [(f a1) || (f a2) || ... ||
+      (f an)].
+
+      TODO: easy
+  *)
+  (* val exists : ('a -> bool) -> 'a array -> bool *)
+
+  (** [mem a set] is [true] if and only if a is structurally equal to an element
+      of [l] (i.e. there is an [x] in [l] such that [compare a x = 0]).
+
+      TODO: not sure it is easy. Might need a compare function in the functor.
+  *)
+  (* val mem : 'a -> 'a array -> bool *)
 end
