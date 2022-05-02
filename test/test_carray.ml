@@ -25,6 +25,8 @@ module Make (M : sig
 
   val zero : t
 
+  val is_zero : t -> bool
+
   (* val to_bytes : t -> Bytes.t *)
 end) =
 struct
@@ -100,6 +102,24 @@ struct
     Array.iter (fun x -> M.add_inplace res' x) array ;
     assert (M.eq res res')
 
+  let test_of_list () =
+    let n = 1 + Random.int 1_000 in
+    let array = Array.init n (fun _ -> M.fresh ()) in
+    let carray = CArray.of_list (Array.to_list array) in
+    assert (array_for_all2 M.eq array (CArray.to_array carray))
+
+  let test_to_list () =
+    let n = 1 + Random.int 1_000 in
+    let array = Array.init n (fun _ -> M.fresh ()) in
+    let clist = CArray.to_list (CArray.of_array array) in
+    assert (List.for_all2 M.eq (Array.to_list array) clist)
+
+  let test_for_all () =
+    let n = 1 + Random.int 1_000 in
+    let array = Array.init n (fun _ -> M.(copy zero)) in
+    let carray = CArray.of_array array in
+    assert (CArray.for_all M.is_zero carray)
+
   let get_tests name =
     let open Alcotest in
     [ ( Printf.sprintf "Instantiate with %s" name,
@@ -109,6 +129,9 @@ struct
           test_case "set" `Quick test_set;
           test_case "copy" `Quick test_copy_returns_a_correct_fresh_copy;
           test_case "iter" `Quick test_iter_add_inplace;
+          test_case "of_list" `Quick test_of_list;
+          test_case "to_list" `Quick test_to_list;
+          test_case "for_all" `Quick test_for_all;
           test_case "length when make used" `Quick test_length_when_make_used;
           test_case "length when init used" `Quick test_length_when_init_used ]
       ) ]
