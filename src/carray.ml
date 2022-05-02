@@ -52,18 +52,26 @@ struct
   type 'a t = 'a Stubs.carray * int * int
 
   (* FIXME: what about empty list? *)
-  let make size v = (Stubs.make size P.size_in_bytes v, size, 0)
+  let make size v =
+    if size < 1 then
+      raise @@ Invalid_argument "Carray.make: size be greater than 1" ;
+    (Stubs.make size P.size_in_bytes v, size, 0)
 
-  (* FIXME: check i < length *)
-  let set (carray, _len, ofs) v i = Stubs.set (carray, ofs) v i P.size_in_bytes
+  let set (carray, n, ofs) v i =
+    if i < ofs || i >= n then
+      raise @@ Invalid_argument "Carray.set: index out of bounds" ;
+    Stubs.set (carray, ofs) v i P.size_in_bytes
 
-  (* FIXME: check i < length *)
-  let get (carray, _, ofs) i =
+  let get (carray, n, ofs) i =
+    if i < ofs || i >= n then
+      raise @@ Invalid_argument "Carray.get: index out of bounds" ;
     let v = P.fresh () in
     Stubs.get (Obj.magic v) (carray, ofs) i P.size_in_bytes ;
     Obj.magic v
 
   let init n f =
+    if n < 1 then
+      raise @@ Invalid_argument "Carray.init: size be greater than 1" ;
     let ofs = 0 in
     let carray = Stubs.allocate_carray n P.size_in_bytes in
     for i = 0 to n - 1 do
@@ -74,6 +82,8 @@ struct
   let of_array array =
     let ofs = 0 in
     let length = Array.length array in
+    if length < 1 then
+      raise @@ Invalid_argument "Carray.of_array: size be greater than 1" ;
     let carray = Stubs.allocate_carray length P.size_in_bytes in
     Stubs.of_array carray array length P.size_in_bytes ;
     (carray, length, ofs)

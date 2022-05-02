@@ -1,3 +1,6 @@
+(* TODO:
+   - add bound checks tests
+*)
 let array_for_all2 p l1 l2 =
   let n1 = Array.length l1 and n2 = Array.length l2 in
   if n1 <> n2 then invalid_arg "Array.for_all2"
