@@ -1,6 +1,7 @@
 (tests
  (names test_carray test_carray_c_binding)
  (libraries carray bls12-381 alcotest hex)
+ (modes exe)
  (foreign_stubs
   (language c)
   (names test_carray_c_binding_stubs)))
