@@ -3,6 +3,9 @@ module Stubs = struct
 
   type 'a t = 'a carray * int
 
+  external built_with_track_custom_block : unit -> bool
+    = "caml_carray_memprof_activated_stubs"
+
   (* always n followed by size_in_bytes *)
   external allocate_carray : int -> int -> 'a carray
     = "caml_allocate_carray_stubs"
@@ -127,3 +130,5 @@ struct
     iter f' a ;
     !res
 end
+
+let built_with_track_custom_block = Stubs.built_with_track_custom_block ()

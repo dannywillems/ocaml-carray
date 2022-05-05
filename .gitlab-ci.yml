@@ -73,6 +73,20 @@ lint-c:
     - dune build
     - dune build @install
     - dune build @runtest
+    # Check built_with_track_custom_block is set to true if carray built with __TRACK_CUSTOM_BLOCK__
+    - dune clean
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_set.exe
+    - dune clean
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune build -p carray
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_set.exe
+    - dune exec ./test/check_built_with_track_custom_block_set.exe
+    # Check built_with_track_custom_block is set to false if carray not built with __TRACK_CUSTOM_BLOCK__
+    - dune clean
+    - dune exec ./test/check_built_with_track_custom_block_not_set.exe
+    - dune clean
+    - dune build -p carray
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_not_set.exe
+    - dune exec ./test/check_built_with_track_custom_block_not_set.exe
   rules:
     - when: always
 
@@ -175,6 +189,20 @@ build:
     - opam install . --dry-run --deps-only --locked --with-test --with-doc --yes | awk '/-> installed/{print $3}' | xargs opam depext -iy
     - dune build @install
     - dune build @runtest
+    # Check built_with_track_custom_block is set to true if carray built with __TRACK_CUSTOM_BLOCK__
+    - dune clean
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_set.exe
+    - dune clean
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune build -p carray
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_set.exe
+    - dune exec ./test/check_built_with_track_custom_block_set.exe
+    # Check built_with_track_custom_block is set to false if carray not built with __TRACK_CUSTOM_BLOCK__
+    - dune clean
+    - dune exec ./test/check_built_with_track_custom_block_not_set.exe
+    - dune clean
+    - dune build -p carray
+    - BUILT_WITH_TRACK_CUSTOM_BLOCK=y dune exec ./test/check_built_with_track_custom_block_not_set.exe
+    - dune exec ./test/check_built_with_track_custom_block_not_set.exe
   rules:
     - when: always
 

@@ -3,11 +3,18 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
+#include <caml/memprof.h>
 #include <caml/mlvalues.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
+#define BUILT_WITH_TRACK_CUSTOM_BLOCK 1
+#else
+#define BUILT_WITH_TRACK_CUSTOM_BLOCK 0
+#endif
 
 #define Internal_Carray_val(v) (*(void **)Data_custom_val(v))
 
@@ -50,10 +57,13 @@ CAMLprim value caml_allocate_carray_stubs(value n, value size) {
   int n_c = Int_val(n);
   int size_c = Int_val(size);
   block = caml_alloc_custom(&carray_ops, sizeof(void **), 0, 1);
-  void *p = calloc(1, n_c * size_c);
+  void *p = malloc(n_c * size_c);
   if (p == NULL) {
     caml_raise_out_of_memory();
   }
+#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
+  caml_memprof_track_custom(block, n_c * size_c);
+#endif
   void **d = (void **)Data_custom_val(block);
   *d = p;
   CAMLreturn(block);
@@ -92,8 +102,14 @@ CAMLprim value caml_make_carray_stubs(value n, value size, value v) {
   int size_c = Int_val(size);
   block = caml_alloc_custom(&carray_ops, sizeof(void *), 0, 1);
   void *p = malloc(n_c * size_c);
-  if (p == NULL)
+  if (p == NULL) {
     caml_raise_out_of_memory();
+  }
+
+#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
+  caml_memprof_track_custom(block, n_c * size_c);
+#endif
+
   void **d = (void **)Data_custom_val(block);
   *d = p;
   for (int i = 0; i < n_c; i++) {
@@ -204,4 +220,9 @@ CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
 CAMLprim value caml_map_carray_stubs_bytecode(value args[], int argc) {
   return caml_map_carray_stubs(args[0], args[1], args[2], args[3], args[4],
                                args[5]);
+}
+
+CAMLprim value caml_carray_memprof_activated_stubs(value unit) {
+  CAMLparam1(unit);
+  CAMLreturn(Val_bool(BUILT_WITH_TRACK_CUSTOM_BLOCK));
 }

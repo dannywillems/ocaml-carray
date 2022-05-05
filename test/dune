@@ -10,4 +10,15 @@
 
 (tests
  (names test_carray)
+ (modules test_carray)
  (libraries carray bls12-381 alcotest hex))
+
+(executable
+ (name check_built_with_track_custom_block_set)
+ (libraries carray)
+ (modules check_built_with_track_custom_block_set))
+
+(executable
+ (name check_built_with_track_custom_block_not_set)
+ (libraries carray)
+ (modules check_built_with_track_custom_block_not_set))
