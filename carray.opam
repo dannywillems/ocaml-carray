@@ -8,7 +8,7 @@ bug-reports: "https://gitlab.com/dannywillems/ocaml-carray/issues"
 license: "MIT"
 depends: [
   # for caml_memprof_track_custom
-  "ocaml" {>= "4.11"}
+  "ocaml" {>= "4.12"}
   # FIXME: See tests/dune. Should be 3.0.0.
   "dune" {>= "2.8.4"}
   "bls12-381" {>= "3.0.0" & with-test}
