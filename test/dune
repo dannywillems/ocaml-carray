@@ -1,7 +1,13 @@
+; FIXME: if dune < 3.0.0 is used, dune is going to crash
+; For the moment, we want to use carray in NL/privacy-team, which uses dune 2.9.3.
+; (tests
+;  (names test_carray test_carray_c_binding)
+;  (libraries carray bls12-381 alcotest hex)
+;  (modes exe)
+;  (foreign_stubs
+;   (language c)
+;   (names test_carray_c_binding_stubs)))
+
 (tests
- (names test_carray test_carray_c_binding)
- (libraries carray bls12-381 alcotest hex)
- (modes exe)
- (foreign_stubs
-  (language c)
-  (names test_carray_c_binding_stubs)))
+ (names test_carray)
+ (libraries carray bls12-381 alcotest hex))
