@@ -10,7 +10,10 @@ end) : sig
   (** The type of C arrays *)
   type 'a t
 
-  (** [make n x] returns [a] fresh array of length [n], initialized with [x].
+  (** [allocate n] returns a fresh array of length [n] *)
+  val allocate : int -> 'a t
+
+  (** [make n x] returns a fresh array of length [n], initialized with [x].
       Each element of the array is a fresh copy of [a]. This is different from
       [Array.make] *)
   val make : int -> 'a -> 'a t

@@ -51,6 +51,8 @@ end) =
 struct
   type 'a t = 'a Stubs.carray * int * int
 
+  let allocate n = (Stubs.allocate_carray n P.size_in_bytes, n, 0)
+
   (* FIXME: what about empty list? *)
   let make size v =
     if size < 1 then
