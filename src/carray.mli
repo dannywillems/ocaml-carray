@@ -132,5 +132,3 @@ end) : sig
   *)
   (* val mem : 'a -> 'a array -> bool *)
 end
-
-val built_with_track_custom_block : bool

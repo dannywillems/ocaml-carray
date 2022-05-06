@@ -1,11 +1,3 @@
-(rule
- (deps build.sh)
- (targets c_flags_carray.sexp)
- (action
-  (no-infer
-   (progn
-    (run ./build.sh)))))
-
 (library
  (public_name carray)
  (name carray)
@@ -14,9 +6,6 @@
  (library_flags :standard -linkall -ccopt -lpthread)
  (foreign_stubs
   (language c)
-  (flags
-   :standard
-   (:include c_flags_carray.sexp))
   (names carray_stubs)))
 
 (install

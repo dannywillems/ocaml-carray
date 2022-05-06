@@ -3,18 +3,10 @@
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
-#include <caml/memprof.h>
 #include <caml/mlvalues.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
-#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
-#define BUILT_WITH_TRACK_CUSTOM_BLOCK 1
-#else
-#define BUILT_WITH_TRACK_CUSTOM_BLOCK 0
-#endif
 
 #define Internal_Carray_val(v) (*(void **)Data_custom_val(v))
 
@@ -56,14 +48,13 @@ CAMLprim value caml_allocate_carray_stubs(value n, value size) {
   CAMLlocal1(block);
   int n_c = Int_val(n);
   int size_c = Int_val(size);
-  block = caml_alloc_custom(&carray_ops, sizeof(void **), 0, 1);
-  void *p = malloc(n_c * size_c);
+  size_t out_of_heap_memory_size = n_c * size_c;
+  void *p = malloc(out_of_heap_memory_size);
   if (p == NULL) {
     caml_raise_out_of_memory();
   }
-#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
-  caml_memprof_track_custom(block, n_c * size_c);
-#endif
+  block = caml_alloc_custom_mem(&carray_ops, sizeof(void **),
+                                out_of_heap_memory_size);
   void **d = (void **)Data_custom_val(block);
   *d = p;
   CAMLreturn(block);
@@ -100,16 +91,13 @@ CAMLprim value caml_make_carray_stubs(value n, value size, value v) {
   CAMLlocal1(block);
   int n_c = Int_val(n);
   int size_c = Int_val(size);
-  block = caml_alloc_custom(&carray_ops, sizeof(void *), 0, 1);
-  void *p = malloc(n_c * size_c);
+  size_t out_of_heap_memory_size = n_c * size_c;
+  void *p = malloc(out_of_heap_memory_size);
   if (p == NULL) {
     caml_raise_out_of_memory();
   }
-
-#ifdef __BUILT_WITH_TRACK_CUSTOM_BLOCK__
-  caml_memprof_track_custom(block, n_c * size_c);
-#endif
-
+  block = caml_alloc_custom_mem(&carray_ops, sizeof(void **),
+                                out_of_heap_memory_size);
   void **d = (void **)Data_custom_val(block);
   *d = p;
   for (int i = 0; i < n_c; i++) {
@@ -179,15 +167,14 @@ CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
   int size_c = Int_val(size);
   int length_c = Int_val(length);
   void *array_c = Internal_Carray_with_ofs_val(array, size_c);
+  // FIXME: what about GC collection with parameter 0 and 1? What is size_c is
+  // big?
   block = caml_alloc_custom(&carray_elmt_ops, size_c, 0, 1);
 
-  /* clock_t start_time = clock(); */
   for (int i = 0; i < length_c; i++) {
     memcpy(Data_custom_val(block), array_c + i * size_c, size_c);
     caml_callback(f, block);
   }
-  /* double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC; */
-  /* printf("Done in %f seconds\n", elapsed_time); */
 
   CAMLreturn(Val_unit);
 }
@@ -203,6 +190,8 @@ CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
   int length = Int_val(vlength);
   void *input = Internal_Carray_with_ofs_val(vinput, size_a);
   void *output = Internal_Carray_with_ofs_val(voutput, size_b);
+  // FIXME: what about GC collection with parameter 0 and 1? What is size_c is
+  // big?
   block = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
 
   /* clock_t start_time = clock(); */
@@ -220,9 +209,4 @@ CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
 CAMLprim value caml_map_carray_stubs_bytecode(value args[], int argc) {
   return caml_map_carray_stubs(args[0], args[1], args[2], args[3], args[4],
                                args[5]);
-}
-
-CAMLprim value caml_carray_memprof_activated_stubs(value unit) {
-  CAMLparam1(unit);
-  CAMLreturn(Val_bool(BUILT_WITH_TRACK_CUSTOM_BLOCK));
 }
