@@ -1,12 +1,4 @@
-module Make (P : sig
-  type t
-
-  val size_in_bytes : int
-
-  (* IMPROVEME/FIXME/COMMENTME: This is only used for get. I'd like to have a better interface.
-     It is not common to have a fresh fn in the interface *)
-  val fresh : unit -> t
-end) : sig
+module type S = sig
   (** The type of C arrays *)
   type 'a t
 
@@ -132,3 +124,13 @@ end) : sig
   *)
   (* val mem : 'a -> 'a array -> bool *)
 end
+
+module Make (P : sig
+  type t
+
+  val size_in_bytes : int
+
+  (* IMPROVEME/FIXME/COMMENTME: This is only used for get. I'd like to have a better interface.
+     It is not common to have a fresh fn in the interface *)
+  val fresh : unit -> t
+end) : S
