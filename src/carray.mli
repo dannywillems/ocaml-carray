@@ -2,6 +2,8 @@ module type S = sig
   (** The type of C arrays *)
   type 'a t
 
+  val size_in_bytes : int
+
   (** [allocate n] returns a fresh array of length [n] *)
   val allocate : int -> 'a t
 

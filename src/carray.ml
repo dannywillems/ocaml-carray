@@ -2,6 +2,8 @@ module type S = sig
   (** The type of C arrays *)
   type 'a t
 
+  val size_in_bytes : int
+
   (** [allocate n] returns a fresh array of length [n] *)
   val allocate : int -> 'a t
 
@@ -177,6 +179,8 @@ module Make (P : sig
 end) =
 struct
   type 'a t = 'a Stubs.carray * int * int
+
+  let size_in_bytes = P.size_in_bytes
 
   let allocate n = (Stubs.allocate_carray n P.size_in_bytes, n, 0)
 
