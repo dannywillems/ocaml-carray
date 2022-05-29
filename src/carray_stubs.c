@@ -4,6 +4,7 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +58,14 @@ CAMLprim value caml_allocate_carray_stubs(value n, value size) {
                                 out_of_heap_memory_size);
   void **d = (void **)Data_custom_val(block);
   *d = p;
+  CAMLreturn(block);
+}
+
+CAMLprim value caml_allocate_carray_elem_stubs(value vsize) {
+  CAMLparam1(vsize);
+  CAMLlocal1(block);
+  int size = Int_val(vsize);
+  block = caml_alloc_custom(&carray_elmt_ops, size, 0, 1);
   CAMLreturn(block);
 }
 
@@ -160,6 +169,21 @@ CAMLprim value caml_copy_carray_stubs(value output, value input, value length,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_mem_carray_stubs(value vinput, value vcmp, value vlength,
+                                     value vsize) {
+  CAMLparam4(vinput, vcmp, vlength, vsize);
+  int length = Int_val(vlength);
+  int size = Int_val(vsize);
+  void *input = Internal_Carray_with_ofs_val(vinput, size);
+  void *cmp = Data_custom_val(vcmp);
+
+  for (int i = 0; i < length; i++) {
+    if (memcmp(input + i * size, cmp, size) == 0)
+      CAMLreturn(Val_bool(1));
+  }
+  CAMLreturn(Val_bool(0));
+}
+
 CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
                                       value size) {
   CAMLparam4(f, array, length, size);
@@ -179,31 +203,95 @@ CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_append_carray_stubs(value voutput, value vinput1,
+                                        value vinput2, value vlength1,
+                                        value vlength2, value vsize) {
+  CAMLparam5(voutput, vinput1, vinput2, vlength1, vlength2);
+  CAMLxparam1(vsize);
+  int size = Int_val(vsize);
+  int length1 = Int_val(vlength1);
+  int length2 = Int_val(vlength2);
+  void *input1 = Internal_Carray_with_ofs_val(vinput1, size);
+  void *input2 = Internal_Carray_with_ofs_val(vinput2, size);
+  void *output = Internal_Carray_with_ofs_val(voutput, size);
+
+  for (int i = 0; i < length1; i++) {
+    memcpy(output + i * size, input1 + i * size, size);
+  }
+
+  for (int i = 0; i < length2; i++) {
+    memcpy(output + (length1 + i) * size, input2 + i * size, size);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_append_carray_stubs_bytecode(value args[], int argc) {
+  return caml_append_carray_stubs(args[0], args[1], args[2], args[3], args[4],
+                                  args[5]);
+}
+
+CAMLprim value caml_iteri_carray_stubs(value vf, value vinput, value vlength,
+                                       value vsize) {
+  CAMLparam4(vf, vinput, vlength, vsize);
+  CAMLlocal2(vinput_val, vindex);
+  int size = Int_val(vsize);
+  int length = Int_val(vlength);
+  void *input = Internal_Carray_with_ofs_val(vinput, size);
+
+  vinput_val = caml_alloc_custom(&carray_elmt_ops, size, 0, 1);
+
+  for (int i = 0; i < length; i++) {
+    vindex = Val_int(i);
+    memcpy(Data_custom_val(vinput_val), input + i * size, size);
+    caml_callback2(vf, vindex, vinput_val);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
                                      value vlength, value vsize_a,
                                      value vsize_b) {
   CAMLparam5(voutput, vf, vinput, vlength, vsize_a);
   CAMLxparam1(vsize_b);
-  CAMLlocal2(block, vres);
+  CAMLlocal2(vinput_val, vres);
   int size_a = Int_val(vsize_a);
   int size_b = Int_val(vsize_b);
   int length = Int_val(vlength);
   void *input = Internal_Carray_with_ofs_val(vinput, size_a);
   void *output = Internal_Carray_with_ofs_val(voutput, size_b);
-  // FIXME: what about GC collection with parameter 0 and 1? What is size_c is
-  // big?
-  block = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
 
-  /* clock_t start_time = clock(); */
+  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+  vres = caml_alloc_custom(&carray_elmt_ops, size_b, 0, 1);
+
   for (int i = 0; i < length; i++) {
-    memcpy(Data_custom_val(block), input + i * size_a, size_a);
-    vres = caml_callback(vf, block);
+    memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
+    vres = caml_callback(vf, vinput_val);
     memcpy(output + i * size_b, Data_custom_val(vres), size_b);
   }
-  /* double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC; */
-  /* printf("Done in %f seconds\n", elapsed_time); */
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_exists_carray_stubs(value vinput, value vf, value vlength,
+                                        value vsize_a) {
+  CAMLparam4(vinput, vf, vlength, vsize_a);
+  CAMLlocal2(vres, vinput_val);
+  int size_a = Int_val(vsize_a);
+  int length = Int_val(vlength);
+  void *input = Internal_Carray_with_ofs_val(vinput, size_a);
+  bool res = 0;
+
+  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+
+  for (int i = 0; i < length; i++) {
+    memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
+    vres = caml_callback(vf, vinput_val);
+    res |= Bool_val(vres);
+  }
+
+  CAMLreturn(Val_bool(res));
 }
 
 CAMLprim value caml_map_carray_stubs_bytecode(value args[], int argc) {
