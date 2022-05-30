@@ -1,51 +1,53 @@
-# ocaml-carray: contiguous C array in OCaml
+# ocaml-carray: contiguous C arrays in OCaml
 
-**WARNING**: do not use in production. The library is not safe yet and only
-works with values allocated in a custom block.
+## Motivation
 
-This library provides an interface to work with contiguous C arrays of C values
-(can be expanded to more types, but it is not done yet) which can be used to
-write for more efficient C bindings.
+OCaml arrays are not always contiguous piece of memory, requiring accessing
+different chunks of memory when accessing individual elements. When requiring a
+value in memory, the CPU will fetch the RAM and load not only the particular
+value but a memory page (a contiguous piece of memory) and add it to its cache.
+The CPU will use its cache to load the values in its registers. It is not
+efficient with large OCaml arrays as the CPU will constantly fetch the RAM to
+load different memory pages in its cache.
 
-When writing bindings to C libraries, developers might need to deal with
-internal C types used by the library. C values are often stored in what is
-called [a custom block](https://v2.ocaml.org/manual/intfc.html#s%3Ac-custom). To allocate a custom block, the following code is often used:
-```C
-#define T_val(v) ((t *)Data_custom_val(v))
+Also, when using the C FFI, the user must know the memory representation of an
+array and use the non user-friendly low-level interface macro `Field`.
 
-static struct custom_operations t_ops = {"t",
-                                         custom_finalize_default,
-                                         custom_compare_default,
-                                         custom_hash_default,
-                                         custom_serialize_default,
-                                         custom_deserialize_default,
-                                         custom_compare_ext_default,
-                                         custom_fixed_length_default};
+## This work
 
-CAMLprim value caml_allocate_t_stubs(value unit) {
-  CAMLparam1(unit);
-  CAMLlocal1(block);
-  block = caml_alloc_custom(&t_ops, sizeof(t), 0, 1);
-  CAMLreturn(block);
-}
+This library provides a polymorphic interface mocking a subset of the `Array`
+interface to work with contiguous piece of memory. Using the library should be
+as easy as adding `module Array = Carray`.
+
+A C macro `Carray_val` is also provided for developers writing bindings and
+requires to simply cast in the underlying C type.
+
+It has also been observed sub arrays are sometimes used for read-only
+operations. However, `Array.sub` allocates a fresh copy of the requested sub
+part. `Carray` leverages this memory cost by providing noalloc variants, like
+`sub_noalloc`.
+
+## Performances
+
+The concept has been tested and used in real world applications like the
+polynomial library used by Nomadic Labs to implement zk-rollups. A speed up of
+around 50% has been observed when using contiguous arrays compared to OCaml
+arrays to compute NTT/FFT.
+
+## Usage
+
+This library is **experimental**. Use this library with caution. The interface
+might change in the future.
+
+```shell
+opam install carray.0.0.1
 ```
 
-and on the OCaml side, we write something like:
-```ocaml
-type t
+## Links
 
-external allocate : unit -> t = "caml_allocate_t_stubs"
-```
-
-From there, we can define OCaml arrays of type `t` with the OCaml type `t array`
-and write stubs using `T_val(Field(varray, i))` to access the ith element of the
-OCaml array. However, it is not the most efficient as we might want to take
-advantage of the CPU cache and some C compiler optimisations by using a
-contiguous piece of memory.
-
-This library is an attempt to provide a `Carray` module to mimic the `Array`
-module interface where values of type `t Carray.t` are contigous C arrays
-storing values of the underlying C type represented by `t`.
-
-The library exposes a C macro `Carray_val(v)` to access the underlying C array
-stored in `v`.
+**Repository**: https://gitlab.com/dannywillems/ocaml-carray
+**License**: [MIT](https://gitlab.com/dannywillems/ocaml-carray/-/blob/0.0.1/LICENSE)
+**Release**: [0.0.1](https://gitlab.com/dannywillems/ocaml-carray/-/tags/0.0.1)
+**Documentation**: https://dannywillems.gitlab.io/ocaml-carray/carray/index.html
+**Nomadic Labs website**: https://nomadic-labs.com
+**Tezos ZK-rollups repository**: https://gitlab.com/nomadic-labs/privacy-team
