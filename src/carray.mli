@@ -53,7 +53,7 @@ val copy : 'a t -> 'a t
 (** [iter f a] iterates [f] over [a] *)
 val iter : ('a -> unit) -> 'a t -> unit
 
-(** Same as {!Array.iter}, but the function is applied to the index of the
+(** Same as {!iter}, but the function is applied to the index of the
     element as first argument, and the element itself as second argument
 *)
 val iteri : (int -> 'a -> unit) -> 'a t -> unit
@@ -61,6 +61,10 @@ val iteri : (int -> 'a -> unit) -> 'a t -> unit
 (** [for_all f a] checks if all elements of the array satisfy the predicate [f] *)
 val for_all : ('a -> bool) -> 'a t -> bool
 
+(** [map f a] applies function [f] to all the elements of [a], and builds an
+    array with the results returned by [f]: [[| f a.(0); f a.(1); ...; f
+    a.(length a - 1) |]].
+*)
 val map : ('a -> 'b) -> 'a t -> 'b t
 
 (** [append v1 v2] returns a fresh array containing the concatenation of the
