@@ -99,10 +99,10 @@ val iteri : (int -> 'a -> unit) -> 'a t -> unit
 *)
 val map : ('a -> 'b) -> 'a t -> 'b t
 
-(* (\** Same as {!map}, but the function is applied to the index of the element as *)
-(*     first argument, and the element itself as second argument. *)
-(* *\) *)
-(* val mapi : (int -> 'a -> 'b) -> 'a t -> 'b t *)
+(** Same as {!map}, but the function is applied to the index of the element as
+    first argument, and the element itself as second argument.
+*)
+val mapi : (int -> 'a -> 'b) -> 'a t -> 'b t
 
 (* (\** [fold_left f init a] computes *)
 (*    [f (... (f (f init a.(0)) a.(1)) ...) a.(n-1)], *)

@@ -181,6 +181,16 @@ struct
     let exp_res = Array.map f array in
     assert (array_for_all2 M.eq exp_res (Carray.to_array res))
 
+  let test_mapi () =
+    let n = 1 + Random.int 1_000 in
+    let array = Array.init n (fun _ -> M.fresh ()) in
+    let array' = Array.init n (fun _ -> M.fresh ()) in
+    let f i x = M.add (M.add x r) (Array.get array' i) in
+    let carray = Carray.init n (fun i -> array.(i)) in
+    let res = Carray.mapi f carray in
+    let exp_res = Array.mapi f array in
+    assert (array_for_all2 M.eq exp_res (Carray.to_array res))
+
   let test_of_list () =
     let n = 1 + Random.int 1_000 in
     let array = Array.init n (fun _ -> M.fresh ()) in
@@ -210,6 +220,7 @@ struct
           test_case "iter" `Quick test_iter_add_inplace;
           test_case "iteri" `Quick test_iteri_add_inplace;
           test_case "map" `Quick test_map;
+          test_case "mapi" `Quick test_mapi;
           test_case "append" `Quick test_append;
           test_case "concat" `Quick test_concat;
           test_case "mem" `Quick test_mem;

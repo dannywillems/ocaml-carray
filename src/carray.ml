@@ -43,6 +43,9 @@ module Stubs = struct
   external map : 'b t -> ('a -> 'b) -> 'a t -> int -> int -> int -> unit
     = "caml_map_carray_stubs_bytecode" "caml_map_carray_stubs"
 
+  external mapi : 'b t -> (int -> 'a -> 'b) -> 'a t -> int -> int -> int -> unit
+    = "caml_mapi_carray_stubs_bytecode" "caml_mapi_carray_stubs"
+
   external mem : 'a t -> 'a -> int -> int -> bool = "caml_mem_carray_stubs"
 
   external exists : 'a t -> ('a -> bool) -> int -> int -> bool
@@ -159,6 +162,22 @@ module Generic = struct
       make input_n (f init_v)
     in
     Stubs.map
+      (output_carray, output_ofs)
+      f
+      (input_carray, input_ofs)
+      input_n
+      input_size_in_bytes
+      output_size_in_bytes ;
+    (output_carray, input_n, output_ofs, output_size_in_bytes)
+
+  let mapi f (input_carray, input_n, input_ofs, input_size_in_bytes) =
+    let init_v =
+      get (input_carray, input_n, input_ofs, input_size_in_bytes) 0
+    in
+    let output_carray, _output_n, output_ofs, output_size_in_bytes =
+      make input_n (f 0 init_v)
+    in
+    Stubs.mapi
       (output_carray, output_ofs)
       f
       (input_carray, input_ofs)

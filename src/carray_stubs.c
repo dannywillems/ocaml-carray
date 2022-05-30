@@ -250,6 +250,26 @@ CAMLprim value caml_iteri_carray_stubs(value vf, value vinput, value vlength,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_exists_carray_stubs(value vinput, value vf, value vlength,
+                                        value vsize_a) {
+  CAMLparam4(vinput, vf, vlength, vsize_a);
+  CAMLlocal2(vres, vinput_val);
+  int size_a = Int_val(vsize_a);
+  int length = Int_val(vlength);
+  void *input = Internal_Carray_with_ofs_val(vinput, size_a);
+  bool res = 0;
+
+  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+
+  for (int i = 0; i < length; i++) {
+    memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
+    vres = caml_callback(vf, vinput_val);
+    res |= Bool_val(vres);
+  }
+
+  CAMLreturn(Val_bool(res));
+}
+
 CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
                                      value vlength, value vsize_a,
                                      value vsize_b) {
@@ -274,27 +294,37 @@ CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value caml_exists_carray_stubs(value vinput, value vf, value vlength,
-                                        value vsize_a) {
-  CAMLparam4(vinput, vf, vlength, vsize_a);
-  CAMLlocal2(vres, vinput_val);
-  int size_a = Int_val(vsize_a);
-  int length = Int_val(vlength);
-  void *input = Internal_Carray_with_ofs_val(vinput, size_a);
-  bool res = 0;
-
-  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
-
-  for (int i = 0; i < length; i++) {
-    memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
-    vres = caml_callback(vf, vinput_val);
-    res |= Bool_val(vres);
-  }
-
-  CAMLreturn(Val_bool(res));
-}
-
 CAMLprim value caml_map_carray_stubs_bytecode(value args[], int argc) {
   return caml_map_carray_stubs(args[0], args[1], args[2], args[3], args[4],
                                args[5]);
+}
+
+CAMLprim value caml_mapi_carray_stubs(value voutput, value vf, value vinput,
+                                      value vlength, value vsize_a,
+                                      value vsize_b) {
+  CAMLparam5(voutput, vf, vinput, vlength, vsize_a);
+  CAMLxparam1(vsize_b);
+  CAMLlocal3(vinput_val, vres, vindex);
+  int size_a = Int_val(vsize_a);
+  int size_b = Int_val(vsize_b);
+  int length = Int_val(vlength);
+  void *input = Internal_Carray_with_ofs_val(vinput, size_a);
+  void *output = Internal_Carray_with_ofs_val(voutput, size_b);
+
+  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+  vres = caml_alloc_custom(&carray_elmt_ops, size_b, 0, 1);
+
+  for (int i = 0; i < length; i++) {
+    vindex = Val_int(i);
+    memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
+    vres = caml_callback2(vf, vindex, vinput_val);
+    memcpy(output + i * size_b, Data_custom_val(vres), size_b);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value caml_mapi_carray_stubs_bytecode(value args[], int argc) {
+  return caml_mapi_carray_stubs(args[0], args[1], args[2], args[3], args[4],
+                                args[5]);
 }
