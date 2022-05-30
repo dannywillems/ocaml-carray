@@ -45,9 +45,9 @@ opam install carray.0.0.1
 
 ## Links
 
-**Repository**: https://gitlab.com/dannywillems/ocaml-carray
-**License**: [MIT](https://gitlab.com/dannywillems/ocaml-carray/-/blob/0.0.1/LICENSE)
-**Release**: [0.0.1](https://gitlab.com/dannywillems/ocaml-carray/-/tags/0.0.1)
-**Documentation**: https://dannywillems.gitlab.io/ocaml-carray/carray/index.html
-**Nomadic Labs website**: https://nomadic-labs.com
-**Tezos ZK-rollups repository**: https://gitlab.com/nomadic-labs/privacy-team
+- **Repository**: https://gitlab.com/dannywillems/ocaml-carray
+- **License**: [MIT](https://gitlab.com/dannywillems/ocaml-carray/-/blob/0.0.1/LICENSE)
+- **Release**: [0.0.1](https://gitlab.com/dannywillems/ocaml-carray/-/tags/0.0.1)
+- **Documentation**: https://dannywillems.gitlab.io/ocaml-carray/carray/index.html
+- **Nomadic Labs website**: https://nomadic-labs.com
+- **Tezos ZK-rollups repository**: https://gitlab.com/nomadic-labs/privacy-team
