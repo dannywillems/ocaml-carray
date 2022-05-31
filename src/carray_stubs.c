@@ -65,7 +65,7 @@ CAMLprim value caml_allocate_carray_elem_stubs(value vsize) {
   CAMLparam1(vsize);
   CAMLlocal1(block);
   int size = Int_val(vsize);
-  block = caml_alloc_custom(&carray_elmt_ops, size, 0, 1);
+  block = caml_alloc_custom_mem(&carray_elmt_ops, size, 0);
   CAMLreturn(block);
 }
 
@@ -184,6 +184,27 @@ CAMLprim value caml_mem_carray_stubs(value vinput, value vcmp, value vlength,
   CAMLreturn(Val_bool(0));
 }
 
+CAMLprim value caml_for_all_carray_stubs(value vinput, value vf, value vlength,
+                                         value vsize) {
+  CAMLparam4(vinput, vf, vlength, vsize);
+  CAMLlocal2(block, vtmp_bool);
+  int length = Int_val(vlength);
+  int size = Int_val(vsize);
+  void *input = Internal_Carray_with_ofs_val(vinput, size);
+  bool res = false;
+
+  block = caml_alloc_custom_mem(&carray_elmt_ops, size, 0);
+
+  for (int i = 0; i < length; i++) {
+    memcpy(Data_custom_val(block), input + i * size, size);
+    vtmp_bool = caml_callback(vf, block);
+    if (Bool_val(vtmp_bool) == false) {
+      CAMLreturn(Val_bool(false));
+    }
+  }
+  CAMLreturn(Val_bool(true));
+}
+
 CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
                                       value size) {
   CAMLparam4(f, array, length, size);
@@ -193,7 +214,7 @@ CAMLprim value caml_iter_carray_stubs(value f, value array, value length,
   void *array_c = Internal_Carray_with_ofs_val(array, size_c);
   // FIXME: what about GC collection with parameter 0 and 1? What is size_c is
   // big?
-  block = caml_alloc_custom(&carray_elmt_ops, size_c, 0, 1);
+  block = caml_alloc_custom_mem(&carray_elmt_ops, size_c, 0);
 
   for (int i = 0; i < length_c; i++) {
     memcpy(Data_custom_val(block), array_c + i * size_c, size_c);
@@ -239,7 +260,7 @@ CAMLprim value caml_iteri_carray_stubs(value vf, value vinput, value vlength,
   int length = Int_val(vlength);
   void *input = Internal_Carray_with_ofs_val(vinput, size);
 
-  vinput_val = caml_alloc_custom(&carray_elmt_ops, size, 0, 1);
+  vinput_val = caml_alloc_custom_mem(&carray_elmt_ops, size, 0);
 
   for (int i = 0; i < length; i++) {
     vindex = Val_int(i);
@@ -259,7 +280,7 @@ CAMLprim value caml_exists_carray_stubs(value vinput, value vf, value vlength,
   void *input = Internal_Carray_with_ofs_val(vinput, size_a);
   bool res = 0;
 
-  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
+  vinput_val = caml_alloc_custom_mem(&carray_elmt_ops, size_a, 0);
 
   for (int i = 0; i < length; i++) {
     memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
@@ -282,8 +303,8 @@ CAMLprim value caml_map_carray_stubs(value voutput, value vf, value vinput,
   void *input = Internal_Carray_with_ofs_val(vinput, size_a);
   void *output = Internal_Carray_with_ofs_val(voutput, size_b);
 
-  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
-  vres = caml_alloc_custom(&carray_elmt_ops, size_b, 0, 1);
+  vinput_val = caml_alloc_custom_mem(&carray_elmt_ops, size_a, 0);
+  vres = caml_alloc_custom_mem(&carray_elmt_ops, size_b, 0);
 
   for (int i = 0; i < length; i++) {
     memcpy(Data_custom_val(vinput_val), input + i * size_a, size_a);
@@ -311,8 +332,8 @@ CAMLprim value caml_mapi_carray_stubs(value voutput, value vf, value vinput,
   void *input = Internal_Carray_with_ofs_val(vinput, size_a);
   void *output = Internal_Carray_with_ofs_val(voutput, size_b);
 
-  vinput_val = caml_alloc_custom(&carray_elmt_ops, size_a, 0, 1);
-  vres = caml_alloc_custom(&carray_elmt_ops, size_b, 0, 1);
+  vinput_val = caml_alloc_custom_mem(&carray_elmt_ops, size_a, 0);
+  vres = caml_alloc_custom_mem(&carray_elmt_ops, size_b, 0);
 
   for (int i = 0; i < length; i++) {
     vindex = Val_int(i);

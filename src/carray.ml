@@ -48,6 +48,9 @@ module Stubs = struct
 
   external mem : 'a t -> 'a -> int -> int -> bool = "caml_mem_carray_stubs"
 
+  external for_all : 'a t -> ('a -> bool) -> int -> int -> bool
+    = "caml_for_all_carray_stubs"
+
   external exists : 'a t -> ('a -> bool) -> int -> int -> bool
     = "caml_exists_carray_stubs"
 
@@ -148,11 +151,8 @@ module Generic = struct
 
   let of_list l = of_array (Array.of_list l)
 
-  let for_all f a =
-    let res = ref true in
-    let f' x = res := !res && f x in
-    iter f' a ;
-    !res
+  let for_all f (carray, n, ofs, size_in_bytes) =
+    Stubs.for_all (carray, ofs) f n size_in_bytes
 
   let map f (input_carray, input_n, input_ofs, input_size_in_bytes) =
     let init_v =
