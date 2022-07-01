@@ -7,11 +7,10 @@ dev-repo: "git+https://gitlab.com/dannywillems/ocaml-carray.git"
 bug-reports: "https://gitlab.com/dannywillems/ocaml-carray/issues"
 license: "MIT"
 depends: [
-  # Require caml_alloc_custom_mem, available since 4.08
-  "ocaml" {>= "4.08"}
+  "ocaml" {>= "4.12"}
   # FIXME: See tests/dune. Should be 3.0.0.
   "dune" {>= "2.8.4"}
-  "bls12-381" {>= "3.0.0" & with-test}
+  "bls12-381" {>= "3.0.0" & < "4.0.0" & with-test}
   "alcotest" {with-test}
 ]
 build: [[ "dune" "build" "-j" jobs "-p" name "@install" ]]
