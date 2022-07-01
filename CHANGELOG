@@ -1,5 +1,8 @@
 ## Unreleased
 
+
+## 0.0.2
+
 - `Carray_val` does not require the size in bytes anymore as it is contained in the type
 - Available from OCaml 4.08.
 - Add `Carray.mapi`
